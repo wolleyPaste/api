@@ -64,7 +64,10 @@ func main() {
 		Username: settings["rabbitmqUsername"],
 		Password: settings["rabbitmqPassword"],
 	}
-	queue.InitRabbitMQ(rabbitmq)
+	err := queue.InitRabbitMQ(rabbitmq)
+	if err != nil {
+		log.Fatalf("failed to connect to RabbitMQ: %v", err)
+	}
 	defer queue.CleanupRabbitMQ()
 
 	// Connect to PostgreSQL
@@ -77,7 +80,10 @@ func main() {
 		Username: settings["psqlUsername"],
 		Password: settings["psqlPassword"],
 	}
-	db.InitPostgres(postgresql)
+	err = db.InitPostgres(postgresql)
+	if err != nil {
+		log.Fatalf("failed to connect to PostgreSQL: %v", err)
+	}
 	defer db.ClosePostgres()
 
 	r := gin.Default()

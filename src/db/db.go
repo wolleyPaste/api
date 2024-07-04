@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"wolley-api/src/common"
 
-	"github.com/charmbracelet/log"
-
 	_ "github.com/lib/pq"
 )
 
@@ -19,7 +17,7 @@ func InitPostgres(postgreSQLDB common.PostgreSQL) error {
 	var err error
 	db, err = sql.Open("postgres", connStr)
 	if err != nil {
-		log.Fatalf("failed to initialize postgresql: %v", err)
+		return err
 	}
 
 	return db.Ping()
