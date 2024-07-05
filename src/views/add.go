@@ -3,6 +3,7 @@ package views
 import (
 	"context"
 	"encoding/json"
+	"sync"
 	"time"
 	"wolley-api/src/common"
 	"wolley-api/src/db"
@@ -22,7 +23,8 @@ func CreatePasteID() string {
 	return randomBase64
 }
 
-func fillOptionalField(c *gin.Context, pasteObject *map[string]interface{}, fieldName string) {
+func fillOptionalField(c *gin.Context, pasteObject *map[string]interface{}, fieldName string, wg *sync.WaitGroup) {
+	defer wg.Done()
 	if optionalField := c.Request.Header.Get(fieldName); optionalField != "" {
 		(*pasteObject)[fieldName] = optionalField
 	}
@@ -36,8 +38,9 @@ func Add(c *gin.Context) {
 
 	// Fill optional fields (if exists)
 	var optionalFields = []string{"title", "password", "expiration"}
+	var wg sync.WaitGroup
 	for _, optionalField := range optionalFields {
-		go fillOptionalField(c, &paste, optionalField)
+		go fillOptionalField(c, &paste, optionalField, &wg)
 	}
 
 	// Dump the paste into a json
@@ -62,7 +65,7 @@ func Add(c *gin.Context) {
 			Body:        body,
 		})
 	if err != nil {
-		log.Errorf("Failed to publish a message: %v", err)
+		log.Errorf("failed to publish a message: %v", err)
 		c.JSON(500, gin.H{"error": "Failed to publish message"})
 		return
 	}
